@@ -8,6 +8,43 @@ export const MAX_CHAT_TEXT_LENGTH = 500;
 export const CHAT_RATE_LIMIT_COUNT = 5;
 export const CHAT_RATE_LIMIT_WINDOW_MS = 5000;
 
+export const SEAT_COUNT = 12;
+
+export const AVATAR_EMOJIS = [
+  '🍿', '🥤', '🎬', '🍕', '🎧', '🍦', '🍩', '🍫', '✨', '🦊', '🐼', '🚀',
+  '👾', '🐱', '🐶', '🐸', '🐯', '🦁', '🐻', '🦄', '🐙', '🎸', '⚡', '💎'
+] as const;
+
+export const AVATAR_COLORS = [
+  '#6366f1', '#ec4899', '#f59e0b', '#10b981',
+  '#06b6d4', '#8b5cf6', '#f43f5e', '#14b8a6'
+] as const;
+
+export const REACTION_EMOJIS = ['🔥', '😂', '😭', '👏', '😮', '❤️', '🍿', '👀'] as const;
+
+export const EMOTES = ['wave', 'popcorn', 'highfive', 'dance', 'shush'] as const;
+export type EmoteKind = typeof EMOTES[number];
+
+export const THEMES = ['cinema', 'living-room', 'campfire', 'rooftop'] as const;
+export type Theme = typeof THEMES[number];
+
+export const MAX_ROOM_NAME_LENGTH = 30;
+export const MAX_QUEUE_ITEMS = 20;
+
+// Rate limits
+export const REACTION_RATE_LIMIT_COUNT = 6;
+export const REACTION_RATE_LIMIT_WINDOW_MS = 2000;
+export const EMOTE_RATE_LIMIT_COUNT = 4;
+export const EMOTE_RATE_LIMIT_WINDOW_MS = 3000;
+export const TYPING_RATE_LIMIT_COUNT = 6;
+export const TYPING_RATE_LIMIT_WINDOW_MS = 2000;
+export const POPCORN_RATE_LIMIT_COUNT = 20;
+export const POPCORN_RATE_LIMIT_WINDOW_MS = 3000;
+export const DRAW_RATE_LIMIT_COUNT = 25;
+export const DRAW_RATE_LIMIT_WINDOW_MS = 2000;
+export const QUEUE_RATE_LIMIT_COUNT = 10;
+export const QUEUE_RATE_LIMIT_WINDOW_MS = 5000;
+
 export type MediaType = 'youtube' | 'direct' | 'iframe' | 'browser';
 
 export interface RoomState {
@@ -26,15 +63,100 @@ export interface ChatMessage {
   isSystem?: boolean;
 }
 
+export interface Member {
+  id: string;
+  clientId: string;
+  nickname: string;
+  avatar: string;
+  color: string;
+  seat: number | null;
+  ready: boolean;
+}
+
+export interface QueueItem {
+  id: string;
+  videoId: string;
+  mediaType: MediaType;
+  title?: string;
+  addedBy: string;
+  addedByNickname: string;
+  voters: string[]; // clientIds
+}
+
+export interface RoomMeta {
+  name: string;
+  theme: Theme;
+  popcorn: number;
+  voiceUrl: string | null;
+}
+
+export interface PollState {
+  id: string;
+  question: string;
+  options: string[];
+  votes: Record<string, number>; // clientId -> option index
+  creatorId: string;
+  closed: boolean;
+}
+
+export interface TicTacToeState {
+  board: (('X' | 'O' | null)[]);
+  turn: 'X' | 'O';
+  players: { X: string | null; O: string | null; XName?: string; OName?: string };
+  winner: 'X' | 'O' | 'draw' | null;
+}
+
+export interface DrawStroke {
+  points: { x: number; y: number }[];
+  color: string;
+  width: number;
+}
+
+export interface ActivityState {
+  type: 'poll' | 'tictactoe' | 'draw' | null;
+  poll?: PollState;
+  tictactoe?: TicTacToeState;
+}
+
+export interface ReadyCheckState {
+  phase: 'idle' | 'checking' | 'countdown';
+  readyIds: string[];
+  startAt?: number;
+}
+
 // Client to Server messages
 export type ClientMessage =
-  | { type: 'join'; nickname: string }
+  | { type: 'join'; clientId: string; nickname: string; avatar?: string; color?: string }
   | { type: 'setVideo'; videoId: string; mediaType?: MediaType }
   | { type: 'play'; positionSec: number }
   | { type: 'pause'; positionSec: number }
   | { type: 'seek'; positionSec: number }
   | { type: 'chat'; text: string }
-  | { type: 'ping' };
+  | { type: 'ping' }
+  | { type: 'sit'; seat: number }
+  | { type: 'stand' }
+  | { type: 'reaction'; emoji: string }
+  | { type: 'emote'; kind: EmoteKind; targetId?: string }
+  | { type: 'typing'; isTyping: boolean }
+  | { type: 'readyCheckStart' }
+  | { type: 'ready'; ready: boolean }
+  | { type: 'readyCheckCancel' }
+  | { type: 'queueAdd'; url: string }
+  | { type: 'queueVote'; itemId: string }
+  | { type: 'queueRemove'; itemId: string }
+  | { type: 'queuePlayNext' }
+  | { type: 'videoEnded'; videoId: string }
+  | { type: 'setRoomMeta'; name?: string; theme?: Theme; voiceUrl?: string | null }
+  | { type: 'popcorn' }
+  | { type: 'setActivity'; activityType: 'poll' | 'tictactoe' | 'draw' | null }
+  | { type: 'pollCreate'; question: string; options: string[] }
+  | { type: 'pollVote'; optionIndex: number }
+  | { type: 'pollClose' }
+  | { type: 'tttJoin'; side: 'X' | 'O' }
+  | { type: 'tttMove'; index: number }
+  | { type: 'tttReset' }
+  | { type: 'drawStroke'; stroke: DrawStroke }
+  | { type: 'drawClear' };
 
 // Server to Client messages
 export type ServerMessage =
@@ -47,11 +169,22 @@ export type ServerMessage =
       updatedAt: number;
       serverTime: number;
     }
-  | { type: 'members'; nicknames: string[] }
+  | { type: 'welcome'; selfId: string; member: Member }
+  | { type: 'members'; members: Member[] }
   | { type: 'chat'; nickname: string; text: string; time: number; isSystem?: boolean }
   | { type: 'history'; messages: ChatMessage[] }
   | { type: 'error'; message: string }
-  | { type: 'pong'; serverTime: number };
+  | { type: 'pong'; serverTime: number }
+  | { type: 'reaction'; fromId: string; emoji: string; x: number }
+  | { type: 'emote'; fromId: string; kind: string; targetId?: string; fromName: string; targetName?: string }
+  | { type: 'typing'; id: string; isTyping: boolean; nickname: string }
+  | { type: 'activity'; text: string; time: number; actorId?: string }
+  | { type: 'readyCheck'; phase: 'idle' | 'checking' | 'countdown'; readyIds: string[]; startAt?: number }
+  | { type: 'queue'; items: QueueItem[] }
+  | { type: 'meta'; name: string; theme: Theme; popcorn: number; voiceUrl: string | null }
+  | { type: 'activityState'; activity: ActivityState }
+  | { type: 'drawStroke'; stroke: DrawStroke }
+  | { type: 'drawClear' };
 
 // List of Pokemon for automatic nickname generation
 export const POKEMON_NAMES = [
@@ -60,17 +193,31 @@ export const POKEMON_NAMES = [
   'Togepi', 'Psyduck', 'Dragonite', 'Lapras', 'Gardevoir',
   'Garchomp', 'Greninja', 'Rayquaza', 'Umbreon', 'Sylveon',
   'Blastoise', 'Venusaur', 'Arcanine', 'Alakazam', 'Machamp',
-  'Gengar', 'Vaporeon', 'Jolteon', 'Flareon', 'Mew',
+  'Vaporeon', 'Jolteon', 'Flareon', 'Mew',
   'Cyndaquil', 'Totodile', 'Chikorita', 'Tyranitar', 'Lugia',
   'Torchic', 'Mudkip', 'Treecko', 'Blaziken', 'Metagross',
   'Piplup', 'Chimchar', 'Turtwig', 'Infernape', 'Darkrai',
-  'Zoroark', 'Mimikyu', 'Cinderace', 'Lucario', 'Rowlet'
+  'Zoroark', 'Mimikyu', 'Cinderace', 'Rowlet'
 ];
 
 export function generatePokemonNickname(): string {
   const name = POKEMON_NAMES[Math.floor(Math.random() * POKEMON_NAMES.length)];
   const num = Math.floor(10 + Math.random() * 90); // 2-digit number e.g. Pikachu-42
   return `${name}-${num}`;
+}
+
+export function pickDefaultAvatar(clientId: string): { avatar: string; color: string } {
+  let hash = 0;
+  for (let i = 0; i < clientId.length; i++) {
+    hash = (hash << 5) - hash + clientId.charCodeAt(i);
+    hash |= 0;
+  }
+  const avatarIndex = Math.abs(hash) % AVATAR_EMOJIS.length;
+  const colorIndex = Math.abs(hash >> 3) % AVATAR_COLORS.length;
+  return {
+    avatar: AVATAR_EMOJIS[avatarIndex],
+    color: AVATAR_COLORS[colorIndex],
+  };
 }
 
 // Helper to sanitize room code by removing all whitespace and uppercasing

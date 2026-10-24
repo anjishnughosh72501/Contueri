@@ -1,0 +1,253 @@
+.lounge-container {
+  perspective: 900px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  margin-top: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lounge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.reaction-bar {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.reaction-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.55rem;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.15s;
+}
+
+.reaction-btn:hover {
+  transform: scale(1.18);
+  border-color: var(--accent-primary);
+}
+
+/* Curved Rows 3D Lounge */
+.seating-rows-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transform-style: preserve-3d;
+  transform: rotateX(12deg);
+  padding: 0.5rem 0;
+}
+
+.seating-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.85rem;
+}
+
+.seating-row-back {
+  transform: translateZ(-25px) scale(0.95);
+}
+
+.seating-row-middle {
+  transform: translateZ(0);
+}
+
+.seating-row-front {
+  transform: translateZ(25px) scale(1.05);
+}
+
+/* Seat */
+.theater-seat {
+  width: 90px;
+  min-height: 85px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius-md) var(--radius-md) 4px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.5rem 0.3rem;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+
+.theater-seat:hover {
+  border-color: var(--accent-primary);
+  transform: translateY(-3px);
+}
+
+.theater-seat.occupied {
+  border-color: rgba(99, 102, 241, 0.6);
+  background: linear-gradient(180deg, rgba(30, 27, 75, 0.8) 0%, var(--bg-secondary) 100%);
+}
+
+.theater-seat.is-me {
+  border-color: var(--success);
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.3);
+}
+
+.theater-seat.empty {
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-dim);
+  justify-content: center;
+  font-size: var(--font-size-xs);
+}
+
+.theater-seat.empty:hover {
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--text-secondary);
+}
+
+/* Chair back silhouette */
+.seat-chair-back {
+  position: absolute;
+  top: -8px;
+  left: 6px;
+  right: 6px;
+  height: 14px;
+  border-radius: 8px 8px 0 0;
+  background: var(--border-strong);
+  z-index: 0;
+}
+
+.seat-avatar-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  margin-bottom: 0.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.seat-name {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.seat-ready-indicator {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  background: var(--success);
+  color: #ffffff;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  box-shadow: 0 0 6px var(--success);
+}
+
+/* Speech bubbles over seats */
+.seat-speech-bubble {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  padding: 0.35rem 0.65rem;
+  font-size: var(--font-size-xs);
+  color: #ffffff;
+  white-space: normal;
+  max-width: 160px;
+  word-break: break-word;
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-floating);
+  pointer-events: none;
+  animation: bubbleFade 4s ease-out forwards;
+}
+
+.seat-speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--border-accent) transparent transparent transparent;
+}
+
+@keyframes bubbleFade {
+  0% { opacity: 0; transform: translate(-50%, 5px); }
+  10% { opacity: 1; transform: translate(-50%, 0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Standing room strip */
+.standing-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-subtle);
+  overflow-x: auto;
+}
+
+.standing-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-dim);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+/* Seat emote menu */
+.seat-emote-menu {
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 0.35rem;
+  display: flex;
+  gap: 0.25rem;
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-floating);
+}
+
+.seat-emote-btn {
+  padding: 0.25rem 0.45rem;
+  font-size: var(--font-size-xs);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+}
