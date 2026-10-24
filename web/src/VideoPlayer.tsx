@@ -14,10 +14,12 @@ interface VideoPlayerProps {
   roomState: RoomState | null;
   clockOffset: number;
   hasEnteredParty: boolean;
+  holdUntil?: number;
   onEnterParty: () => void;
   onSendPlay: (positionSec: number) => void;
   onSendPause: (positionSec: number) => void;
   onSendSeek: (positionSec: number) => void;
+  onVideoEnded?: (videoId: string) => void;
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -26,10 +28,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   roomState,
   clockOffset,
   hasEnteredParty,
+  holdUntil,
   onEnterParty,
   onSendPlay,
   onSendPause,
   onSendSeek,
+  onVideoEnded,
 }) => {
   const ytPlayerRef = useRef<any>(null);
   const videoElementRef = useRef<HTMLVideoElement | null>(null);
@@ -171,6 +175,23 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     setApplyingRemote(600);
 
+    const serverNow = Date.now() + clockOffset;
+    const shouldHold = holdUntil && serverNow < holdUntil;
+
+    if (shouldHold) {
+      const waitMs = Math.max(0, holdUntil - serverNow);
+      setTimeout(() => {
+        if (roomStateRef.current?.isPlaying) {
+          if (mediaType === 'youtube' && ytPlayerRef.current?.playVideo) {
+            ytPlayerRef.current.playVideo();
+          } else if (mediaType === 'direct' && videoElementRef.current?.paused) {
+            videoElementRef.current.play().catch(() => {});
+          }
+        }
+      }, waitMs);
+      return;
+    }
+
     if (mediaType === 'youtube' && ytPlayerRef.current) {
       if (typeof ytPlayerRef.current.seekTo === 'function') {
         if (drift > 1.5) {
@@ -255,6 +276,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               if (roomStateRef.current?.isPlaying) {
                 onSendPause(curTime);
               }
+            } else if (state === window.YT.PlayerState.ENDED) {
+              if (videoId) onVideoEnded?.(videoId);
             }
           },
           onError: (event: any) => {
@@ -476,6 +499,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               onSeeked={handleDirectSeeked}
               onLoadedMetadata={handleDirectLoadedMetadata}
               onError={handleDirectVideoError}
+              onEnded={() => { if (videoId) onVideoEnded?.(videoId); }}
             />
           </div>
         ) : mediaType === 'browser' ? (
