@@ -1,0 +1,65 @@
+/* Theme definitions overriding tokens */
+
+[data-theme="cinema"] {
+  --bg-primary: #0b0f19;
+  --bg-secondary: #0f172a;
+  --bg-card: rgba(30, 41, 59, 0.7);
+  --border-accent: #6366f1;
+  --accent-primary: #6366f1;
+  --accent-glow: rgba(99, 102, 241, 0.35);
+}
+
+[data-theme="living-room"] {
+  --bg-primary: #181310;
+  --bg-secondary: #241c16;
+  --bg-card: rgba(56, 44, 34, 0.75);
+  --border-subtle: #3a2e24;
+  --border-strong: #544336;
+  --border-accent: #f59e0b;
+  --text-primary: #fef3c7;
+  --text-secondary: #fde68a;
+  --text-muted: #d97706;
+  --accent-primary: #d97706;
+  --accent-hover: #b45309;
+  --accent-glow: rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="campfire"] {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: rgba(33, 20, 15, 0.8);
+  --border-subtle: #3c2415;
+  --border-strong: #613317;
+  --border-accent: #ea580c;
+  --text-primary: #ffedd5;
+  --text-secondary: #fed7aa;
+  --text-muted: #f97316;
+  --accent-primary: #ea580c;
+  --accent-hover: #c2410c;
+  --accent-glow: rgba(234, 88, 12, 0.4);
+}
+
+[data-theme="rooftop"] {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #12182b;
+  --bg-card: rgba(26, 33, 62, 0.75);
+  --border-subtle: #1f2b4f;
+  --border-strong: #2c3d70;
+  --border-accent: #06b6d4;
+  --text-primary: #f0fdf4;
+  --text-secondary: #cffafe;
+  --text-muted: #38bdf8;
+  --accent-primary: #06b6d4;
+  --accent-hover: #0891b2;
+  --accent-glow: rgba(6, 182, 212, 0.4);
+}
+
+/* Reduced motion adjustments */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
